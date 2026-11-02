@@ -1,0 +1,40 @@
+[package]
+name = "redkite_os"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+bootloader = { version = "0.9.23", features = ["map_physical_memory"] }
+volatile = "0.2.6"
+spin = "0.9.8"
+x86_64 = { version = "0.14.13", default-features = false, features = ["instructions", "abi_x86_interrupt"] }
+pic8259 = "0.10.4"
+pc-keyboard = "0.7.0"
+linked_list_allocator = "0.10.5"
+font8x8 = { version = "0.3.1", default-features = false, features = ["unicode"] }
+acpi = "4.1.1"
+libm = "0.2.7"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[package.metadata.bootimage]
+run-command = [
+    "qemu-system-x86_64",
+    "-enable-kvm",
+    "-cpu", "host",
+    "-drive", "format=raw,file={}",
+    "-audiodev", "pa,id=snd0",
+    "-machine", "pcspk-audiodev=snd0",
+    "-netdev", "user,id=u1",
+    "-device", "rtl8139,netdev=u1",
+    "-smp", "4",
+    "-vga", "std",
+    "-serial", "tcp:127.0.0.1:4444,server,nowait"
+]
